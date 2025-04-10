@@ -2,7 +2,7 @@
 const express = require('express');
 // const req = require("express/lib/request");
 require('dotenv').config();
-const dbConnect = require('./config/db.js');
+const dbConnect = require('../config/db.js');
 dbConnect();
 
 // Application Setup
@@ -12,20 +12,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Route Definition
-// app.use(express.static('public')); // This will display /public/index.html when the server loads
+app.use(express.static('public')); // This will display /public/index.html when the server loads
 // These two conflict with each other.
-app.get('/', (request, response) => {
-    response.send("Welcome to Edward McKeown's API!");
-});
+// app.get('/', (request, response) => {
+//     response.send("Welcome to Edward McKeown's API!");
+// });
 
-const todosRouter = require("./routes/todos");
+const todosRouter = require("../routes/todos");
 app.use("/api/todos", todosRouter);
 
-const postsRouter = require("./routes/posts");
+const postsRouter = require("../routes/posts");
 app.use("/api/posts", postsRouter);
 
 // Create a new route for planets in your index.js file
-const planetsRouter = require("./routes/planets");
+const planetsRouter = require("../routes/planets");
 const mongoose = require("mongoose");
 app.use("/api/planets", planetsRouter);
 
