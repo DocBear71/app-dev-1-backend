@@ -3,16 +3,6 @@ const express = require('express');
 const router = express.Router();
 const Todos = require('../models/Todos');
 
-// let uniqueId = 1;
-// const todos = [
-//     {
-//         "userId": 1, // based-on user logged in
-//         "id": 1, // auto-incrementing value
-//         "title": "Brush my teeth",
-//         "completed": false
-//     }
-// ];
-
 // route definitions
 // Get all todos
 router.get('/', getTodos);
@@ -28,8 +18,8 @@ router.delete('/:id', deleteSingleTodo);
 // Route handlers
 async function getTodos (req, res) {
     try {
-        const todos = await Todos.find()
-        res.json({success: true, data: todos});
+        const todos = await Todos.find();
+        res.json({ success: true, data: todos});
     } catch(error) {
         console.log(error);
         res.status(500).json({success: false, message: 'Something went wrong!'});
@@ -38,19 +28,19 @@ async function getTodos (req, res) {
 async function getSingleTodo(req, res) {
     const id = req.params.id;
     if (!isValidId(id)) {
-        res.status(404).json({success: false, message: 'Invalid ID format' });
+        return res.status(400).json({ success: false, message: 'Invalid ID format' });
     }
     const todo = await Todos.findById(id);
     if(!todo) {
-        res.status(404).send("Not Found");
+        return res.status(404).json({success: false, message: 'Not found!'});
     }
-    res.json(todo);
+    res.json({ success: true, data: todo});
 }
 async function addTodo(req, res) {
     const title = req.body.title;
     const completed = false;
     const userId = 1; // Change based on user logged in
-    // validate user input before continuing
+    // Validate user input before continuing
     if(title) {
         const todo = new Todos({
             "title": title,
@@ -60,20 +50,24 @@ async function addTodo(req, res) {
         const savedTodo = await todo.save();
         res.json({success: true, data: savedTodo});
     } else {
-        res.status(500).json({success: false, message: 'Title is required'});
+        res.status(400).json({ success: false, message: 'Title is required' });
     }
 }
 
 async function updateSingleTodo(req, res) {
     const id = req.params.id;
     if (!isValidId(id)) {
-        return res.status(404).json({success: false, message: 'Invalid ID format'});
+        return res.status(400).json({ success: false, message: 'Invalid ID format' });
     }
-        todo = {};
-        todo.title = req.body.title;
-        todo.completed = !!req.body.completed;
-        const updatedTodo = await Todos.findByIdAndUpdate(id, {$set: todo}, {new: true});
-        res.json({success: true, data: updatedTodo});
+    todo = {};
+    todo.title = req.body.title;
+    todo.completed = !!req.body.completed; // Converts string to boolean
+    const updatedTodo = await Todos.findByIdAndUpdate(id, {$set: todo}, {new: true});
+    if(!updatedTodo) {
+        return res.status(404).json({success: false, message: 'Not found!'});
+    }
+    res.json({success: true, data: updatedTodo});
+
 }
 
 function deleteSingleTodo(req, res) {
