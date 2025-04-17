@@ -118,7 +118,7 @@ function updateListItem(itemName) {
             // todo: validate the id
             const toDo = {_id: id, title: itemName, userId: 1, completed: false};
             // fetch('Http://localhost:5000/api/todos/' + id, {
-            fetch('https://eds-nodejs25.vercel.app/api/todos' + id, {
+            fetch('https://eds-nodejs25.vercel.app/api/todos/' + id, {
                 method: 'PUT',
                 body: JSON.stringify(toDo),
                 headers: {'content-type': 'application/json; charset=UTF-8'}
@@ -133,7 +133,6 @@ function updateListItem(itemName) {
                     }
                 });
                 break;
-
         }
     }
 }
