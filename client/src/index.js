@@ -114,6 +114,29 @@ function isDuplicate(newItemName) {
     return false;
 }
 
+// Add this function to check for duplicates except the current item
+function isDuplicateExcept(newItemName, exceptItem) {
+    newItemName = newItemName.toLowerCase().trim();
+
+    // Get all current list items
+    const listItems = itemList.querySelectorAll('li');
+
+    // Check if any existing item text matches the new item text (case insensitive)
+    for (let i = 0; i < listItems.length; i++) {
+        // Skip the item we're editing
+        if (listItems[i] === exceptItem) {
+            continue;
+        }
+
+        const itemText = listItems[i].textContent.replace(/\s*×\s*$/, '').toLowerCase().trim();
+        if (itemText === newItemName) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 function clearStorage() {
     localStorage.removeItem('items');
@@ -150,6 +173,11 @@ function updateListItem(itemName) {
         let currentItem = listItems[i];
         if(currentItem.classList.contains('edit-mode')) {
             const id = currentItem.getAttribute('data-id');
+            // Check for duplicates, but exclude the current item from the check
+            if (isDuplicateExcept(itemName, currentItem)) {
+                alert('This item already exists in your list!');
+                return;
+            }
             // todo: validate the id
             const toDo = {_id: id, title: itemName, userId: 1, completed: false};
             // fetch('Http://localhost:5000/api/todos/' + id, {
@@ -262,6 +290,14 @@ itemList.addEventListener('click', function (event) {
 });
 
 clearBtn.addEventListener('click', function(event) {
+    // if in edit mode, clear edit mode first
+    if (inEditMode()) {
+        const editItem = itemList.querySelector('li.edit-mode');
+        if (editItem) {
+            turnOffEdit(editItem);
+        }
+        return; // Don't proceed with clearing the list
+    }
     let confirmClear = confirm('Are you sure you want to clear the list?');
     if (confirmClear) {
         // Send DELETE request to the API to delete all todos
