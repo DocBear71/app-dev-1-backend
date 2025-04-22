@@ -74,6 +74,12 @@ function getItemsFromStorage() {
 
 function storeListItem(itemName) {
     if(itemName !== "") {
+        // Check for duplicates before proceeding
+        if (isDuplicate(itemName)) {
+            alert('This item is already on your list!');
+            return;
+        }
+
         fetch('https://eds-nodejs25.vercel.app/api/todos', {
             method: 'POST',
             body: JSON.stringify({title: itemName}),
@@ -92,8 +98,22 @@ function storeListItem(itemName) {
 function setUp() {
     itemList.innerHTML = '';
     getItemsFromStorage();
-
 }
+
+function isDuplicate(newItemName) {
+    newItemName = newItemName.toLowerCase().trim();
+    // Get all current list items
+    const listItems = itemList.querySelectorAll('li');
+    // Check if any existing item text matches the new item text (case insensitive)
+    for (let i = 0; i < listItems.length; i++) {
+        const itemText = listItems[i].textContent.replace(/\s*×\s*$/, '').toLowerCase().trim();
+        if (itemText === newItemName) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 function clearStorage() {
     localStorage.removeItem('items');
