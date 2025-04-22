@@ -1,3 +1,4 @@
+// file /routes/todos.js
 // Application dependencies
 const express = require('express');
 const router = express.Router();
@@ -14,6 +15,8 @@ router.post('/', addTodo);
 router.put('/:id', updateSingleTodo);
 // Delete a single to-do
 router.delete('/:id', deleteSingleTodo);
+// Delete all todos
+router.delete('/', deleteAllTodos);
 
 // Route handlers
 async function getTodos (req, res) {
@@ -92,6 +95,28 @@ async function deleteSingleTodo(req, res) {
     } catch (error) {
         console.error('Error in deleteSingleTodo:', error);
         return res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    }
+}
+
+// Route handler for deleting all todos
+async function deleteAllTodos(req, res) {
+    try {
+        console.log('Delete all todos request received');
+
+        const result = await Todos.deleteMany({});
+
+        console.log('Successfully deleted all todos:', result);
+        return res.json({
+            success: true,
+            message: 'All todos deleted successfully',
+            data: { deletedCount: result.deletedCount }
+        });
+    } catch (error) {
+        console.error('Error in deleteAllTodos:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error: ' + error.message
+        });
     }
 }
 

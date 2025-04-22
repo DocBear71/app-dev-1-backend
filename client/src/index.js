@@ -229,10 +229,31 @@ itemList.addEventListener('click', function (event) {
 clearBtn.addEventListener('click', function(event) {
     let confirmClear = confirm('Are you sure you want to clear the list?');
     if (confirmClear) {
-        itemList.innerHTML = '';
-        clearStorage();
+        // Send DELETE request to the API to delete all todos
+        fetch('https://eds-nodejs25.vercel.app/api/todos', {
+            method: 'DELETE'
+        })
+            .then(res => {
+                if (res.ok) {
+                    // Clear the UI list if the API request was successful
+                    itemList.innerHTML = '';
+                    return res.json();
+                } else {
+                    return res.text().then(text => {
+                        console.error('Error response body:', text);
+                        throw new Error(`Server returned ${res.status}`);
+                    });
+                }
+            })
+            .then(data => {
+                console.log('Delete all response data:', data);
+            })
+            .catch(error => {
+                console.error('Error deleting all items:', error);
+            });
     }
 });
+
 // These events didn't work: change, keydown, keypress
 filter.addEventListener('input', (event) => {
     let value = event.target.value;
