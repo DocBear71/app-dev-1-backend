@@ -147,6 +147,33 @@ function turnOffEdit(item) {
     item.classList.remove('edit-mode');
 }
 
+function deleteItem(itemElement) {
+    // Get the li element that contains the clicked X icon
+    const listItem = itemElement.closest('li');
+    const id = listItem.getAttribute('data-id');
+
+    // Get the item text from the list item's first child (text node)
+    const itemText = listItem.firstChild.textContent;
+
+    // Ask for confirmation
+    const confirmDelete = confirm(`Are you sure you want to delete "${itemText}"?`);
+
+    // Remove the item from the database and the list
+    if (confirmDelete) {
+        // Send DELETE request to the API
+        fetch('https://eds-nodejs25.vercel.app/api/todos/' + id, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    // Remove the item from the DOM
+                    listItem.remove();
+                }
+            });
+    }
+}
+
 // End Update/Delete functionality
 
 // Start Event Listeners
@@ -169,20 +196,25 @@ itemForm.addEventListener('submit', (event) => {
 
 itemList.addEventListener('click', function (event) {
     if (event.target.tagName === 'LI') {
-        // console.log("You clicked the list item");
+        // Code for edit mode remains the same
         if(event.target.classList.contains('edit-mode')) {
-            // Turn off edit mode
             turnOffEdit(event.target);
         } else {
-            // Turn on edit mode
             updateItem(event.target);
         }
-    } else if(event.target.parentElement.classList.contains('remove-item')) {
-        // console.log("You clicked the delete button");
-        // This is your homework
-        // Hint: Target the li, which is the parent of the button, which is the parent of the icon
+    } else if(event.target.classList.contains('fa-circle-xmark')) {
+        // Only delete when clicking the X icon
+        deleteItem(event.target);
+    } else if(event.target.parentElement.classList.contains('remove-item') &&
+        event.target.classList.contains('btn-link')) {
+        // This catches clicks on the button that contains the X icon
+        const icon = event.target.querySelector('.fa-circle-xmark');
+        if (icon) {
+            deleteItem(event.target);
+        }
     }
 });
+
 clearBtn.addEventListener('click', function(event) {
     let confirmClear = confirm('Are you sure you want to clear the list?');
     if (confirmClear) {
