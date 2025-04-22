@@ -37,25 +37,39 @@ function createListItem(item) {
 // Start localStorage functionality
 function getItemsFromStorage() {
     let listItemsArr = [];
-    // fetch('http://localhost:5000/api/todos', {
+
     fetch('https://eds-nodejs25.vercel.app/api/todos', {
         method: 'GET'
-    }).then(res => res.json())
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Server responded with status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(json => {
+            if (!json.data || !Array.isArray(json.data)) {
+                console.error('Unexpected response format:', json);
+                return;
+            }
+
             const todos = json.data;
             todos.forEach(todo => {
                 const title = todo.title;
                 const id = todo._id;
                 listItemsArr.push([title, id]);
-            })
-        })
-        .then(function() {
-            // listItemsArr is a two-dimensional array
-            // item is an array
-            listItemsArr.forEach(item => {
-                createListItem(item)});
             });
 
+            // Render todos
+            listItemsArr.forEach(item => {
+                createListItem(item);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching todos:', error);
+            // Optionally show an error message to the user
+            // itemList.innerHTML = `<li class="error">Error loading todos: ${error.message}</li>`;
+        });
 }
 
 function storeListItem(itemName) {
