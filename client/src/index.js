@@ -74,7 +74,6 @@ function getItemsFromStorage() {
 
 function storeListItem(itemName) {
     if(itemName !== "") {
-        // fetch('http://localhost:5000/api/todos', {
         fetch('https://eds-nodejs25.vercel.app/api/todos', {
             method: 'POST',
             body: JSON.stringify({title: itemName}),
@@ -82,7 +81,9 @@ function storeListItem(itemName) {
         }).then(res => res.json())
             .then(json => {
                 if (json.success) {
-                    createListItem(itemName);
+                    // Get the ID from the response and create the proper array
+                    const newTodo = json.data;
+                    createListItem([newTodo.title, newTodo._id]);
                 }
             });
     }
