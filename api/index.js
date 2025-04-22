@@ -29,8 +29,9 @@ app.use(errorHandler);
 function fileNotFound (req, res) {
     res.status(404).send("Not Found");
 }
-function errorHandler (err, req, res) {
-    res.status(500).send("I'm sorry, something happened");
+function errorHandler(err, req, res, next) {
+    console.error('Server error:', err);
+    res.status(500).json({ success: false, message: 'Server error: ' + err.message });
 }
 
 // App listener

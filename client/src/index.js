@@ -152,24 +152,35 @@ function deleteItem(itemElement) {
     const listItem = itemElement.closest('li');
     const id = listItem.getAttribute('data-id');
 
-    // Get the item text from the list item's first child (text node)
-    const itemText = listItem.firstChild.textContent;
-
     // Ask for confirmation
-    const confirmDelete = confirm(`Are you sure you want to delete "${itemText}"?`);
+    const confirmDelete = confirm(`Are you sure you want to delete this item?`);
 
-    // Remove the item from the database and the list
     if (confirmDelete) {
+        console.log('Attempting to delete item with ID:', id);
+
         // Send DELETE request to the API
         fetch('https://eds-nodejs25.vercel.app/api/todos/' + id, {
             method: 'DELETE'
         })
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) {
-                    // Remove the item from the DOM
+            .then(res => {
+                console.log('Delete response status:', res.status);
+
+                if (res.ok) {
+                    console.log('Delete request successful');
                     listItem.remove();
+                    return res.json();
+                } else {
+                    return res.text().then(text => {
+                        console.error('Error response body:', text);
+                        throw new Error(`Server returned ${res.status}`);
+                    });
                 }
+            })
+            .then(data => {
+                console.log('Delete response data:', data);
+            })
+            .catch(error => {
+                console.error('Error deleting item:', error);
             });
     }
 }
