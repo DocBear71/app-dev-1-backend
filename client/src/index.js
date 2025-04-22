@@ -114,7 +114,7 @@ function isDuplicate(newItemName) {
     return false;
 }
 
-// Add this function to check for duplicates except the current item
+// function to check for duplicates except the current item
 function isDuplicateExcept(newItemName, exceptItem) {
     newItemName = newItemName.toLowerCase().trim();
 
@@ -137,12 +137,6 @@ function isDuplicateExcept(newItemName, exceptItem) {
     return false;
 }
 
-
-function clearStorage() {
-    localStorage.removeItem('items');
-}
-// End localStorage functionality
-
 // Start Update/Delete functionality
 function updateItem(item) {
     // Step 1: place the item's text in the form's input field
@@ -153,6 +147,9 @@ function updateItem(item) {
     // Step 3: Change the style of all buttons except the one that was clicked
     itemList.querySelectorAll('li').forEach(i => i.classList.remove('edit-mode'));
     item.classList.add('edit-mode');
+    // Step 4: Set focus on the input field and select all text
+    itemInput.focus();
+    itemInput.select();
 }
 
 function inEditMode() {
