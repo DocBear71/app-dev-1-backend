@@ -15,7 +15,7 @@ const clearBtn = document.getElementById('clear');
 const filter = document.getElementById('filter');
 
 // API URL
-const API_URL = 'http:eds-nodejs25.vercel.app/api/index';
+const API_URL = 'https://eds-nodejs25.vercel.app/api/index';
 
 // Helper Functions
 function createButton(textColor = 'black', iconName = '', ...classes) {
