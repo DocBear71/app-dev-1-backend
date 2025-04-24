@@ -1,6 +1,7 @@
 // index.js
 
 import './css/style.css';
+import './css/planets.css';
 import {logPlugin} from "@babel/preset-env/lib/debug";
 const itemForm = document.getElementById('item-form');
 const itemFormBtn = document.querySelector('#item-form button');
