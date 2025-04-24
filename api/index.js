@@ -3,8 +3,10 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const dbConnect = require('../config/db.js');
-dbConnect();
+const { connectAll } = require('../config/db');
+
+// Initialize database connections
+connectAll();
 
 // Application setup
 const app = express();
@@ -24,12 +26,17 @@ app.use("/api/todos", todosRouter);
 const postsRouter = require("../routes/posts");
 app.use("/api/posts", postsRouter);
 
+const planetsRouter = require("../routes/planets");
+app.use("/api/planets", planetsRouter);
+
 app.use("*", fileNotFound);
 app.use(errorHandler);
+
 // Route handlers
-function fileNotFound (req, res) {
+function fileNotFound(req, res) {
     res.status(404).send("Not Found");
 }
+
 function errorHandler(err, req, res, next) {
     console.error('Server error:', err);
     res.status(500).json({ success: false, message: 'Server error: ' + err.message });

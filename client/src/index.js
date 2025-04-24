@@ -1,3 +1,5 @@
+// index.js
+
 import './css/style.css';
 import {logPlugin} from "@babel/preset-env/lib/debug";
 const itemForm = document.getElementById('item-form');

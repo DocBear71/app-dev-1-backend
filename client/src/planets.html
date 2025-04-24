@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css"
+            integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/planets.css">
+    <title>Planets Tracker</title>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1 id="main-heading">Planets Explorer</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="./index.html">Todo List</a></li>
+            <li><a href="./planets.html" class="active">Planets Tracker</a></li>
+        </ul>
+    </nav>
+
+    <form id="planet-form">
+        <div class="form-control">
+            <label for="planet-name">Planet Name:</label>
+            <input
+                    type="text"
+                    class="form-input"
+                    id="planet-name"
+                    name="name"
+                    placeholder="Enter Planet Name"
+                    required
+            />
+        </div>
+        <div class="form-control">
+            <label for="planet-order">Order from Sun:</label>
+            <input
+                    type="number"
+                    class="form-input"
+                    id="planet-order"
+                    name="orderFromSun"
+                    placeholder="Enter a number"
+                    min="1"
+            />
+        </div>
+        <div class="form-control checkbox">
+            <input
+                    type="checkbox"
+                    id="planet-rings"
+                    name="hasRings"
+            />
+            <label for="planet-rings">Has Rings</label>
+        </div>
+
+        <!-- Extra Credit: Atmosphere Elements -->
+        <div class="form-control">
+            <label>Atmosphere Elements:</label>
+            <div class="atmosphere-checkboxes">
+                <div>
+                    <input type="checkbox" id="atm-h" name="atmosphere" value="H">
+                    <label for="atm-h">Hydrogen (H)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-he" name="atmosphere" value="He">
+                    <label for="atm-he">Helium (He)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-n" name="atmosphere" value="N">
+                    <label for="atm-n">Nitrogen (N)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-o2" name="atmosphere" value="O2">
+                    <label for="atm-o2">Oxygen (O2)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-co2" name="atmosphere" value="CO2">
+                    <label for="atm-co2">Carbon Dioxide (CO2)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-ar" name="atmosphere" value="AR">
+                    <label for="atm-ar">Argon (AR)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="atm-ch4" name="atmosphere" value="CH4">
+                    <label for="atm-ch4">Methane (CH4)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Credit: Temperature Inputs -->
+        <div class="form-control temperature-inputs">
+            <label>Surface Temperature (°C):</label>
+            <div class="temp-group">
+                <div>
+                    <label for="temp-min">Min:</label>
+                    <input
+                            type="number"
+                            id="temp-min"
+                            name="tempMin"
+                            placeholder="Min Temp"
+                    />
+                </div>
+                <div>
+                    <label for="temp-max">Max:</label>
+                    <input
+                            type="number"
+                            id="temp-max"
+                            name="tempMax"
+                            placeholder="Max Temp"
+                    />
+                </div>
+                <div>
+                    <label for="temp-mean">Mean:</label>
+                    <input
+                            type="number"
+                            id="temp-mean"
+                            name="tempMean"
+                            placeholder="Mean Temp"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-control">
+            <button type="submit" class="btn" id="submit-btn">
+                <i class="fa-solid fa-plus"></i> Add Planet
+            </button>
+        </div>
+    </form>
+
+    <div class="filter">
+        <input
+                type="text"
+                class="form-input-filter"
+                id="filter"
+                placeholder="Filter Planets"
+        />
+    </div>
+
+    <div class="planet-list-header">
+        <span class="name-header">Name</span>
+        <span class="order-header">Order</span>
+        <span class="rings-header">Rings</span>
+        <span class="atm-header">Atmosphere</span>
+        <span class="temp-header">Temp Range (°C)</span>
+        <span class="actions-header">Actions</span>
+    </div>
+
+    <ul id="planet-list" class="planets">
+        <!-- Planet items will be dynamically inserted here -->
+    </ul>
+
+    <button id="clear" class="btn-clear">Clear All Planets</button>
+</div>
+
+<script src="./planets.js"></script>
+</body>
+</html>
