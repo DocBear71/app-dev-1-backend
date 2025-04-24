@@ -1,7 +1,5 @@
 // planets.js
 
-import '../css/style.css';
-import '../css/planets.css';
 // DOM Elements
 const planetForm = document.getElementById('planet-form');
 const submitBtn = document.getElementById('submit-btn');
