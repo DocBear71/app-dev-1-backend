@@ -39,45 +39,17 @@ function createPlanetElement(planet) {
     const listItem = document.createElement('li');
     listItem.setAttribute('data-id', planet._id);
 
+    // Create header with planet name and action buttons
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'planet-header';
+
     // Planet name
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'planet-name';
-    nameSpan.textContent = planet.name;
-    listItem.appendChild(nameSpan);
+    const nameElem = document.createElement('h3');
+    nameElem.className = 'planet-name';
+    nameElem.textContent = planet.name;
+    headerDiv.appendChild(nameElem);
 
-    // Order from sun
-    const orderSpan = document.createElement('span');
-    orderSpan.className = 'planet-order';
-    orderSpan.textContent = planet.orderFromSun || '-';
-    listItem.appendChild(orderSpan);
-
-    // Has rings
-    const ringsSpan = document.createElement('span');
-    ringsSpan.className = 'planet-rings';
-    ringsSpan.textContent = planet.hasRings ? 'Yes' : 'No';
-    listItem.appendChild(ringsSpan);
-
-    // Atmosphere
-    const atmSpan = document.createElement('span');
-    atmSpan.className = 'planet-atm';
-    if (planet.mainAtmosphere && planet.mainAtmosphere.length > 0) {
-        atmSpan.textContent = planet.mainAtmosphere.join(', ');
-    } else {
-        atmSpan.textContent = 'None detected';
-    }
-    listItem.appendChild(atmSpan);
-
-    // Temperature
-    const tempSpan = document.createElement('span');
-    tempSpan.className = 'planet-temp';
-    if (planet.surfaceTemperatureC) {
-        tempSpan.textContent = `${planet.surfaceTemperatureC.min}° to ${planet.surfaceTemperatureC.max}°`;
-    } else {
-        tempSpan.textContent = 'Unknown';
-    }
-    listItem.appendChild(tempSpan);
-
-    // Action buttons
+    // Action buttons container
     const actionsSpan = document.createElement('span');
     actionsSpan.className = 'planet-actions';
 
@@ -89,7 +61,158 @@ function createPlanetElement(planet) {
     const deleteButton = createButton('red', 'trash', 'delete-item');
     actionsSpan.appendChild(deleteButton);
 
-    listItem.appendChild(actionsSpan);
+    headerDiv.appendChild(actionsSpan);
+    listItem.appendChild(headerDiv);
+
+    // Planet info container
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'planet-info';
+
+    // Order from sun
+    const orderDiv = document.createElement('div');
+    orderDiv.className = 'planet-info-item';
+
+    const orderIconSpan = document.createElement('span');
+    orderIconSpan.className = 'planet-info-icon';
+    orderIconSpan.innerHTML = '<i class="fa-solid fa-circle-dot"></i>';
+    orderDiv.appendChild(orderIconSpan);
+
+    const orderLabelSpan = document.createElement('span');
+    orderLabelSpan.className = 'planet-info-label';
+    orderLabelSpan.textContent = 'Order from Sun:';
+    orderDiv.appendChild(orderLabelSpan);
+
+    const orderValueSpan = document.createElement('span');
+    orderValueSpan.className = 'planet-info-value';
+    const orderText = numberToOrdinalText(planet.orderFromSun);
+    orderValueSpan.textContent = orderText;
+    orderDiv.appendChild(orderValueSpan);
+
+    infoDiv.appendChild(orderDiv);
+
+    // Has rings
+    const ringsDiv = document.createElement('div');
+    ringsDiv.className = 'planet-info-item';
+
+    const ringsIconSpan = document.createElement('span');
+    ringsIconSpan.className = 'planet-info-icon';
+    ringsIconSpan.innerHTML = '<i class="fa-solid fa-ring"></i>';
+    ringsDiv.appendChild(ringsIconSpan);
+
+    const ringsLabelSpan = document.createElement('span');
+    ringsLabelSpan.className = 'planet-info-label';
+    ringsLabelSpan.textContent = 'Has Rings:';
+    ringsDiv.appendChild(ringsLabelSpan);
+
+    const ringsValueSpan = document.createElement('span');
+    ringsValueSpan.className = 'planet-info-value';
+    ringsValueSpan.textContent = planet.hasRings ? 'Yes' : 'No';
+    ringsDiv.appendChild(ringsValueSpan);
+
+    infoDiv.appendChild(ringsDiv);
+
+    // Atmosphere
+    const atmDiv = document.createElement('div');
+    atmDiv.className = 'planet-info-item';
+
+    const atmIconSpan = document.createElement('span');
+    atmIconSpan.className = 'planet-info-icon';
+    atmIconSpan.innerHTML = '<i class="fa-solid fa-wind"></i>';
+    atmDiv.appendChild(atmIconSpan);
+
+    const atmLabelSpan = document.createElement('span');
+    atmLabelSpan.className = 'planet-info-label';
+    atmLabelSpan.textContent = 'Atmosphere:';
+    atmDiv.appendChild(atmLabelSpan);
+
+    const atmValueSpan = document.createElement('span');
+    atmValueSpan.className = 'planet-info-value';
+    if (planet.mainAtmosphere && planet.mainAtmosphere.length > 0) {
+        atmValueSpan.textContent = planet.mainAtmosphere.join(', ');
+    } else {
+        atmValueSpan.textContent = 'None detected';
+    }
+    atmDiv.appendChild(atmValueSpan);
+
+    infoDiv.appendChild(atmDiv);
+
+    // Temperature box
+    const tempBoxDiv = document.createElement('div');
+    tempBoxDiv.className = 'planet-temp-box';
+
+    const tempTitleDiv = document.createElement('div');
+    tempTitleDiv.className = 'planet-temp-title';
+
+    const tempIconSpan = document.createElement('span');
+    tempIconSpan.className = 'planet-info-icon';
+    tempIconSpan.innerHTML = '<i class="fa-solid fa-temperature-half"></i>';
+    tempTitleDiv.appendChild(tempIconSpan);
+
+    const tempTitle = document.createElement('span');
+    tempTitle.textContent = 'Surface Temperature (°C)';
+    tempTitleDiv.appendChild(tempTitle);
+
+    tempBoxDiv.appendChild(tempTitleDiv);
+
+    // Temperature grid
+    const tempGridDiv = document.createElement('div');
+    tempGridDiv.className = 'temp-grid';
+
+    // Min temp
+    const minTempDiv = document.createElement('div');
+    minTempDiv.className = 'temp-item';
+
+    const minTempLabel = document.createElement('div');
+    minTempLabel.className = 'temp-label';
+    minTempLabel.textContent = 'Min';
+    minTempDiv.appendChild(minTempLabel);
+
+    const minTempValue = document.createElement('div');
+    minTempValue.className = 'temp-value';
+    minTempValue.textContent = planet.surfaceTemperatureC && planet.surfaceTemperatureC.min !== undefined ?
+        `${planet.surfaceTemperatureC.min}°` : 'N/A';
+    minTempDiv.appendChild(minTempValue);
+
+    tempGridDiv.appendChild(minTempDiv);
+
+    // Mean temp
+    const meanTempDiv = document.createElement('div');
+    meanTempDiv.className = 'temp-item';
+
+    const meanTempLabel = document.createElement('div');
+    meanTempLabel.className = 'temp-label';
+    meanTempLabel.textContent = 'Mean';
+    meanTempDiv.appendChild(meanTempLabel);
+
+    const meanTempValue = document.createElement('div');
+    meanTempValue.className = 'temp-value';
+    meanTempValue.textContent = planet.surfaceTemperatureC && planet.surfaceTemperatureC.mean !== undefined ?
+        `${planet.surfaceTemperatureC.mean}°` : 'N/A';
+    meanTempDiv.appendChild(meanTempValue);
+
+    tempGridDiv.appendChild(meanTempDiv);
+
+    // Max temp
+    const maxTempDiv = document.createElement('div');
+    maxTempDiv.className = 'temp-item';
+
+    const maxTempLabel = document.createElement('div');
+    maxTempLabel.className = 'temp-label';
+    maxTempLabel.textContent = 'Max';
+    maxTempDiv.appendChild(maxTempLabel);
+
+    const maxTempValue = document.createElement('div');
+    maxTempValue.className = 'temp-value';
+    maxTempValue.textContent = planet.surfaceTemperatureC && planet.surfaceTemperatureC.max !== undefined ?
+        `${planet.surfaceTemperatureC.max}°` : 'N/A';
+    maxTempDiv.appendChild(maxTempValue);
+
+    tempGridDiv.appendChild(maxTempDiv);
+
+    tempBoxDiv.appendChild(tempGridDiv);
+    infoDiv.appendChild(tempBoxDiv);
+
+    listItem.appendChild(infoDiv);
 
     return listItem;
 }
@@ -373,6 +496,37 @@ function filterPlanets(searchTerm) {
             item.style.display = 'none';
         }
     });
+}
+
+// Function to convert number to ordinal text
+function numberToOrdinalText(num) {
+    if (!num || isNaN(num)) return 'Unknown';
+
+    // Convert to ordinal word
+    const ordinalWords = [
+        'first', 'second', 'third', 'fourth', 'fifth',
+        'sixth', 'seventh', 'eighth', 'ninth', 'tenth'
+    ];
+
+    // Return the ordinal word if it's within our predefined list
+    if (num >= 1 && num <= ordinalWords.length) {
+        return ordinalWords[num - 1];
+    }
+
+    // Otherwise return the number with appropriate ordinal suffix
+    const j = num % 10;
+    const k = num % 100;
+
+    if (j === 1 && k !== 11) {
+        return num + "st";
+    }
+    if (j === 2 && k !== 12) {
+        return num + "nd";
+    }
+    if (j === 3 && k !== 13) {
+        return num + "rd";
+    }
+    return num + "th";
 }
 
 // Event Listeners

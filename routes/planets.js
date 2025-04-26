@@ -55,7 +55,12 @@ async function getSinglePlanet(req, res) {
 
 async function addPlanet(req, res) {
     try {
-        let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
+        // let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
+        const result = await validatePlanetInput(req.body);
+
+        if(!result.success) {
+            return res.status(400).json({success: false, message: result.error});
+        }
 
         if (!name) {
             return res.status(400).json({success: false, message: 'Name is required'});
@@ -298,6 +303,26 @@ async function deleteAllPlanets(req, res) {
     } catch (error) {
         console.log(error);
         res.status(500).json({success: false, message: 'Something went wrong!'});
+    }
+}
+
+function validatePlanetInput(input) {
+    // input is expected to look like this:
+    // {
+    //     "_id": ObjectId('ff30d2a3e781873fcb660'),
+    //     "name": "Jupiter,
+    //     "orderFromSun": 5,
+    //     "hasRings": true,
+    //     "mainAtmosphere": ["H2", "He", "CH4"],
+    //     surfaceTemperatureC: {min: 0, max: 1, mean: 0.5}
+    // }
+    let {name, orderFromSun, hasRings} = input; //this is called deconstruction
+
+    // Sanitize the name
+    name = typeof name === 'string' ? name.trim() : name;
+
+    if (!name) {
+        return{valid: false, error: 'Invalid planet name'};
     }
 }
 

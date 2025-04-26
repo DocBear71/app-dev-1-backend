@@ -102,123 +102,167 @@ nav ul li a.active {
     border-radius: 4px;
 }
 
-/* Planet list header */
-.planet-list-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr 2fr 1fr;
-    gap: 10px;
-    padding: 10px 15px;
-    background-color: #333;
-    color: white;
-    border-radius: 5px;
-    margin-top: 20px;
-    font-weight: 700;
-}
-
-/* Planet list items */
+/* New Planet Card Styles */
 .planets {
-    margin-top: 0;
+    margin-top: 20px;
     list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
 }
 
 .planets li {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr 2fr 1fr;
-    gap: 10px;
-    padding: 15px;
-    margin: 10px 0;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     background-color: white;
-    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    padding: 0;
 }
 
 .planets li:hover {
-    background-color: #f9f9f9;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.planets .planet-name {
+.planet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+}
+
+.planet-name {
+    font-size: 1.2rem;
     font-weight: 700;
+    color: #333;
+    margin: 0;
 }
 
-.planets .planet-order {
-    text-align: center;
-}
-
-.planets .planet-rings {
-    text-align: center;
-}
-
-.planets .planet-atm {
-    font-size: 0.9em;
-}
-
-.planets .planet-temp {
-    font-size: 0.9em;
-}
-
-.planets .planet-actions {
+.planet-actions {
     display: flex;
     gap: 10px;
-    justify-content: center;
+}
+
+.planet-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.planet-info-item {
+    display: flex;
+    align-items: flex-start;
+}
+
+.planet-info-icon {
+    margin-right: 10px;
+    color: #6c757d;
+    width: 20px;
+    text-align: center;
+}
+
+.planet-info-label {
+    font-weight: 500;
+    margin-right: 8px;
+    min-width: 100px;
+}
+
+.planet-info-value {
+    color: #333;
+}
+
+.planet-temp-box {
+    margin-top: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #f8f9fa;
+}
+
+.planet-temp-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+    display: flex;
+    align-items: center;
+}
+
+.planet-temp-title .planet-info-icon {
+    margin-right: 5px;
+}
+
+.temp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.temp-item {
+    text-align: center;
+    padding: 5px;
+}
+
+.temp-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 3px;
+}
+
+.temp-value {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Empty and loading states */
+.planets .empty-list,
+.planets .loading,
+.planets .error {
+    grid-column: 1 / -1;
+    padding: 20px;
+    text-align: center;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.planets .empty-list {
+    color: #6c757d;
+}
+
+.planets .loading {
+    color: #17a2b8;
+}
+
+.planets .error {
+    color: #dc3545;
 }
 
 /* Edit mode */
 .planets li.edit-mode {
-    background-color: #f0f8ff;
     border-color: #4682b4;
-    color: #333;
+    box-shadow: 0 0 0 3px rgba(70, 130, 180, 0.3);
 }
 
-/* Responsive */
+.planets li.edit-mode .planet-header {
+    background-color: #e6f0ff;
+}
+
+/* Clear button styling */
+.btn-clear {
+    margin-top: 30px;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .planet-list-header {
-        display: none;
-    }
-
-    .planets li {
+    .planets {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
-        gap: 5px;
-    }
-
-    .planets li > * {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .planets li > *::before {
-        content: attr(data-label);
-        font-weight: 700;
-    }
-
-    .planets .planet-name::before {
-        content: "Name:";
-    }
-
-    .planets .planet-order::before {
-        content: "Order from Sun:";
-    }
-
-    .planets .planet-rings::before {
-        content: "Has Rings:";
-    }
-
-    .planets .planet-atm::before {
-        content: "Atmosphere:";
-    }
-
-    .planets .planet-temp::before {
-        content: "Temperature:";
-    }
-
-    .planets .planet-actions {
-        justify-content: flex-end;
-        margin-top: 10px;
-    }
-
-    .planets .planet-actions::before {
-        content: "";
     }
 }

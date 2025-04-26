@@ -23,9 +23,6 @@ app.use(express.static('public')); // This will display /public/index.html when 
 const todosRouter = require("../routes/todos");
 app.use("/api/todos", todosRouter);
 
-const postsRouter = require("../routes/posts");
-app.use("/api/posts", postsRouter);
-
 const planetsRouter = require("../routes/planets");
 app.use("/api/planets", planetsRouter);
 
