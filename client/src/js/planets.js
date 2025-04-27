@@ -279,11 +279,22 @@ async function addPlanet(planet) {
             throw new Error(data.message || 'Failed to add planet');
         }
 
-        // Rest of your function...
+        const planetElement = createPlanetElement(data.data);
+
+        const emptyItem = planetList.querySelector('.empty-list');
+        if (emptyItem) {
+            planetList.innerHTML = '';
+        }
+
+        planetList.appendChild(planetElement);
+
+        alert(`Planet ${data.data.name} added successfully!`);
+
+        return true;
     } catch (error) {
         console.error('Error adding planet:', error);
         alert(`Failed to add planet: ${error.message}`);
-        return null;
+        return false;
     }
 }
 
