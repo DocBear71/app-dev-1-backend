@@ -120,6 +120,7 @@ function storeListItem(itemName) {
         // Check for duplicates before proceeding
         if (isDuplicate(itemName)) {
             alert('This item is already on your list!');
+            hideBtnSpinner();
             return;
         }
 
@@ -138,6 +139,8 @@ function storeListItem(itemName) {
             .then(function() {
                 hideBtnSpinner();
             });
+    } else {
+        hideBtnSpinner();
     }
 }
 
