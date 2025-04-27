@@ -445,41 +445,38 @@ itemList.addEventListener('click', function (event) {
     }
 });
 
-clearBtn.addEventListener('click', function(event) {
-    // if in edit mode, clear edit mode first
-    if (inEditMode()) {
-        const editItem = itemList.querySelector('li.edit-mode');
-        if (editItem) {
-            turnOffEdit(editItem);
+if (!clearBtn.dataset.listenerAttached) {
+    clearBtn.addEventListener('click', function(event) {
+        if (inEditMode()) {
+            const editItem = itemList.querySelector('li.edit-mode');
+            if (editItem) {
+                turnOffEdit(editItem);
+            }
+            return;
         }
-        return; // Don't proceed with clearing the list
-    }
-    let confirmClear = confirm('Are you sure you want to clear the list?');
-    if (confirmClear) {
-        // Send DELETE request to the API to delete all todos
-        fetch(apiURL, {
-            method: 'DELETE'
-        })
-            .then(res => {
-                if (res.ok) {
-                    // Clear the UI list if the API request was successful
-                    itemList.innerHTML = '';
-                    return res.json();
-                } else {
-                    return res.text().then(text => {
-                        console.error('Error response body:', text);
-                        throw new Error(`Server returned ${res.status}`);
-                    });
-                }
+        let confirmClear = confirm('Are you sure you want to clear the list?');
+        if (confirmClear) {
+            fetch(apiURL, {
+                method: 'DELETE'
             })
-            .then(data => {
-                console.log('Delete all response data:', data);
-            })
-            .catch(error => {
-                console.error('Error deleting all items:', error);
-            });
-    }
-});
+                .then(res => {
+                    if (res.ok) {
+                        itemList.innerHTML = '';
+                        return res.json();
+                    } else {
+                        return res.text().then(text => {
+                            throw new Error(`Server returned ${res.status}`);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting all items:', error);
+                });
+        }
+    });
+
+    clearBtn.dataset.listenerAttached = 'true';
+}
 
 // These events didn't work: change, keydown, keypress
 filter.addEventListener('input', (event) => {

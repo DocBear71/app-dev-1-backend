@@ -55,23 +55,36 @@ async function getSinglePlanet(req, res) {
 
 async function addPlanet(req, res) {
     try {
-        // let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
-        const result = await validatePlanetInput(req.body);
+        // Add logging to help debug
+        console.log("Received planet data:", JSON.stringify(req.body, null, 2));
 
-        if(!result.success) {
-            return res.status(400).json({success: false, message: result.error});
+
+        // Ensure we have valid input
+        if (!req.body) {
+            return res.status(400).json({ success: false, message: 'No data provided' });
         }
 
-        if (!name) {
-            return res.status(400).json({success: false, message: 'Name is required'});
+        // Perform validation
+        const [validationResult] = await Promise.all([validatePlanetInput(req.body)]);
+
+        // Extra safety check
+        if (!validationResult) {
+            return res.status(500).json({ success: false, message: 'Validation function returned undefined' });
         }
 
-        // Handle mainAtmosphere if it's a string
+        if (!validationResult.success) {
+            return res.status(400).json({ success: false, message: validationResult.error });
+        }
+
+        // Rest of your function...
+        let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
+
+        // Process atmosphere data
         if (mainAtmosphere) {
             mainAtmosphere = hasAtmosphere(mainAtmosphere);
         }
 
-        // Handle surfaceTemperatureC parsing with specific string format
+        // Process temperature data
         let temperatureData = {
             min: 0,
             max: 0,
@@ -79,67 +92,39 @@ async function addPlanet(req, res) {
         };
 
         if (surfaceTemperatureC) {
-            // If it's already an object
             if (typeof surfaceTemperatureC === 'object' && !Array.isArray(surfaceTemperatureC)) {
                 temperatureData = {
-                    min: surfaceTemperatureC.min || 0,
-                    max: surfaceTemperatureC.max || 0,
-                    mean: surfaceTemperatureC.mean || 0
+                    min: surfaceTemperatureC.min !== undefined ? Number(surfaceTemperatureC.min) : 0,
+                    max: surfaceTemperatureC.max !== undefined ? Number(surfaceTemperatureC.max) : 0,
+                    mean: surfaceTemperatureC.mean !== undefined ? Number(surfaceTemperatureC.mean) : 0
                 };
             }
-            // If it's a string
-            else if (typeof surfaceTemperatureC === 'string') {
-                // Try to extract values using regex pattern for "min: -90.1, max: 57.3, mean: 15.2"
-                const pattern = /min:\s*([-+]?\d*\.?\d+),\s*max:\s*([-+]?\d*\.?\d+),\s*mean:\s*([-+]?\d*\.?\d+)/i;
-                const match = surfaceTemperatureC.match(pattern);
-
-                if (match) {
-                    temperatureData = {
-                        min: parseFloat(match[1]),
-                        max: parseFloat(match[2]),
-                        mean: parseFloat(match[3])
-                    };
-                    console.log('Successfully parsed temperature string:', temperatureData);
-                } else {
-                    // If the regex didn't match, log the issue
-                    console.log('Could not parse temperature string with regex:', surfaceTemperatureC);
-
-                    // Try alternate formats - maybe it's inside braces
-                    const bracesPattern = /\{.*min:\s*([-+]?\d*\.?\d+),\s*max:\s*([-+]?\d*\.?\d+),\s*mean:\s*([-+]?\d*\.?\d+).*}/i;
-                    const bracesMatch = surfaceTemperatureC.match(bracesPattern);
-
-                    if (bracesMatch) {
-                        temperatureData = {
-                            min: parseFloat(bracesMatch[1]),
-                            max: parseFloat(bracesMatch[2]),
-                            mean: parseFloat(bracesMatch[3])
-                        };
-                        console.log('Successfully parsed temperature string with braces pattern:', temperatureData);
-                    } else {
-                        console.log('Could not parse temperature string with braces pattern either');
-                    }
-                }
-            }
+            // Handle string case if needed
         }
 
-        // Create the planet with properly formatted data
+        // Create planet object with defaults for missing values
         const planet = new Planets({
-            name,
-            orderFromSun: orderFromSun || 0,
-            hasRings: hasRings || false,
-            mainAtmosphere: mainAtmosphere || [],
-            surfaceTemperatureC: temperatureData
+            name: name || "Unknown Planet",
+            orderFromSun: Number(orderFromSun) || 0,
+            hasRings: Boolean(hasRings),
+            mainAtmosphere: Array.isArray(mainAtmosphere) ? mainAtmosphere : [],
+            surfaceTemperatureC: {
+                min: surfaceTemperatureC?.min || 0,
+                max: surfaceTemperatureC?.max || 0,
+                mean: surfaceTemperatureC?.mean || 0
+            }
         });
 
         console.log("Attempting to save planet with data:", JSON.stringify(planet, null, 2));
 
         const savedPlanet = await planet.save();
-        res.json({success: true, data: savedPlanet});
+        res.json({ success: true, data: savedPlanet });
     } catch (error) {
-        console.log("Error in addPlanet:", error);
-        res.status(500).json({success: false, message: `Something went wrong: ${error.message}`});
+        console.log("Error in addPlanet:", error.stack);
+        res.status(500).json({ success: false, message: `Something went wrong: ${error.message}` });
     }
 }
+
 
 async function updateSinglePlanet(req, res) {
     try {
@@ -307,23 +292,43 @@ async function deleteAllPlanets(req, res) {
 }
 
 function validatePlanetInput(input) {
-    // input is expected to look like this:
-    // {
-    //     "_id": ObjectId('ff30d2a3e781873fcb660'),
-    //     "name": "Jupiter,
-    //     "orderFromSun": 5,
-    //     "hasRings": true,
-    //     "mainAtmosphere": ["H2", "He", "CH4"],
-    //     surfaceTemperatureC: {min: 0, max: 1, mean: 0.5}
-    // }
-    let {name, orderFromSun, hasRings} = input; //this is called deconstruction
+    // Check if input is undefined or null
+    if (!input) {
+        return { success: false, error: 'No input provided' };
+    }
+
+    let { name, orderFromSun, hasRings } = input;
 
     // Sanitize the name
     name = typeof name === 'string' ? name.trim() : name;
 
     if (!name) {
-        return{valid: false, error: 'Invalid planet name'};
+        return { success: false, error: 'Invalid planet name' };
     }
+
+    // Handle orderFromSun (make it more flexible)
+    if (orderFromSun !== undefined && typeof orderFromSun !== 'number') {
+        // Try to convert string to number if possible
+        const parsedOrder = parseInt(orderFromSun);
+        if (isNaN(parsedOrder)) {
+            return { success: false, error: 'Invalid orderFromSun value' };
+        }
+        // If we get here, it's now a valid number
+    }
+
+    // Handle hasRings (make it more flexible)
+    if (hasRings !== undefined && typeof hasRings !== 'boolean') {
+        // Try to handle string values like "true" or "false"
+        if (hasRings === "true") {
+            input.hasRings = true;
+        } else if (hasRings === "false") {
+            input.hasRings = false;
+        } else {
+            return { success: false, error: 'Invalid hasRings value' };
+        }
+    }
+
+    return { success: true };
 }
 
 function isValidId(id) {

@@ -15,7 +15,7 @@ const clearBtn = document.getElementById('clear');
 const filter = document.getElementById('filter');
 
 // API URL
-const API_URL = 'https://eds-nodejs25.vercel.app/api/planets';
+const apiURL = 'https://eds-nodejs25.vercel.app/api/planets/';
 
 // Helper Functions
 function createButton(textColor = 'black', iconName = '', ...classes) {
@@ -222,7 +222,7 @@ async function fetchPlanets() {
     try {
         planetList.innerHTML = '<li class="loading">Loading planets...</li>';
 
-        const response = await fetch(API_URL);
+        const response = await fetch(apiURL);
 
         if (!response.ok) {
             throw new Error(`Server responded with status: ${response.status}`);
@@ -257,7 +257,8 @@ async function fetchPlanets() {
 
 async function addPlanet(planet) {
     try {
-        const response = await fetch(API_URL, {
+        console.log('submitting planet: ', planet);
+        const response = await fetch(apiURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -265,8 +266,11 @@ async function addPlanet(planet) {
             body: JSON.stringify(planet)
         });
 
+        // Enhanced error handling
         if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Server error details:', errorText);
+            throw new Error(`Server responded with status: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
@@ -275,18 +279,7 @@ async function addPlanet(planet) {
             throw new Error(data.message || 'Failed to add planet');
         }
 
-        // Add the new planet to the list
-        const planetElement = createPlanetElement(data.data);
-
-        // Check if we have the "No planets found" message
-        const emptyItem = planetList.querySelector('.empty-list');
-        if (emptyItem) {
-            planetList.innerHTML = '';
-        }
-
-        planetList.appendChild(planetElement);
-
-        return data.data;
+        // Rest of your function...
     } catch (error) {
         console.error('Error adding planet:', error);
         alert(`Failed to add planet: ${error.message}`);
@@ -296,7 +289,7 @@ async function addPlanet(planet) {
 
 async function updatePlanet(id, planet) {
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${apiURL}/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -332,7 +325,7 @@ async function updatePlanet(id, planet) {
 
 async function deletePlanet(id) {
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${apiURL}/${id}`, {
             method: 'DELETE'
         });
 
@@ -370,7 +363,7 @@ async function deletePlanet(id) {
 
 async function deleteAllPlanets() {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(apiURL, {
             method: 'DELETE'
         });
 
@@ -456,9 +449,15 @@ function getPlanetFromForm() {
     const mainAtmosphere = getSelectedAtmosphereElements();
 
     // Get temperature values
-    const tempMin = parseFloat(tempMinInput.value) || 0;
-    const tempMax = parseFloat(tempMaxInput.value) || 0;
-    const tempMean = parseFloat(tempMeanInput.value) || 0;
+    const tempMin = parseFloat(tempMinInput.value);
+    const tempMax = parseFloat(tempMaxInput.value);
+    const tempMean = parseFloat(tempMeanInput.value);
+
+    const temp = {
+        min: (tempMinInput.value === '') ? null : (!isNaN(tempMin) ? tempMin : 0),
+        max: (tempMaxInput.value === '') ? null : (!isNaN(tempMax) ? tempMax : 0),
+        mean: (tempMeanInput.value === '') ? null : (!isNaN(tempMean) ? tempMean : 0)
+    };
 
     // Create planet object
     const planet = {
@@ -466,11 +465,10 @@ function getPlanetFromForm() {
         orderFromSun,
         hasRings,
         mainAtmosphere,
-        surfaceTemperatureC: {
-            min: tempMin,
-            max: tempMax,
-            mean: tempMean
-        }
+        surfaceTemperatureC: temp,
+        discoveredDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
     return planet;
@@ -589,7 +587,7 @@ planetList.addEventListener('click', function(e) {
 
                 // Get planet data from API
                 const id = listItem.getAttribute('data-id');
-                fetch(`${API_URL}/${id}`)
+                fetch(`${apiURL}/${id}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {

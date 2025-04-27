@@ -1,3 +1,5 @@
+// /models/Planets.js
+
 const mongoose = require('mongoose');
 const { planetConnection } = require('../config/db');
 
@@ -5,15 +7,15 @@ const { planetConnection } = require('../config/db');
 const temperatureSchema = new mongoose.Schema({
     min: {
         type: Number,
-        required: true
+        required: false
     },
     max: {
         type: Number,
-        required: true
+        required: false
     },
     mean: {
         type: Number,
-        required: true
+        required: false
     }
 }, { _id: false });
 
@@ -46,7 +48,6 @@ const planetSchema = new mongoose.Schema({
 
 // Middleware to handle parsing string to object if needed
 planetSchema.pre('validate', function(next) {
-    // Check if surfaceTemperatureC is a string and try to parse it
     if (this.surfaceTemperatureC && typeof this.surfaceTemperatureC === 'string') {
         try {
             // Try to parse if it's a JSON string
@@ -64,9 +65,22 @@ planetSchema.pre('validate', function(next) {
                 }
             } catch (innerError) {
                 console.error("Failed to parse temperature string:", innerError);
+                return next(new Error('Invalid temperature format.'));
             }
         }
     }
+
+    // Validate that the temperature object is correctly formatted
+    if (this.surfaceTemperatureC && typeof this.surfaceTemperatureC === 'object') {
+        const { min, max, mean } = this.surfaceTemperatureC;
+        if (typeof min !== 'number' || typeof max !== 'number' || typeof mean !== 'number') {
+            return next(new Error('Surface temperature values must be valid numbers.'));
+        }
+        if (min > max) {
+            return next(new Error('Surface temperature min value cannot be greater than max.'));
+        }
+    }
+
     next();
 });
 
