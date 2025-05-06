@@ -307,7 +307,7 @@ function validatePlanetInput(input) {
     }
 
     // Handle orderFromSun (make it more flexible)
-    if (orderFromSun !== undefined && typeof orderFromSun !== 'number') {
+    if (orderFromSun !== undefined && typeof orderFromSun !== 'number' && orderFromSun <= 0) {
         // Try to convert string to number if possible
         const parsedOrder = parseInt(orderFromSun);
         if (isNaN(parsedOrder)) {

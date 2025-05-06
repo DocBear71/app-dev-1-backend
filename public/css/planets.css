@@ -1,40 +1,4 @@
-/* Additional styles for planets page */
-
-/* Navigation */
-nav {
-    margin-bottom: 30px;
-}
-
-nav ul {
-    display: flex;
-    list-style: none;
-    background-color: #f1f1f1;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-nav ul li {
-    flex: 1;
-}
-
-nav ul li a {
-    display: block;
-    padding: 10px;
-    text-align: center;
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-nav ul li a:hover {
-    background-color: #ddd;
-}
-
-nav ul li a.active {
-    background-color: #333;
-    color: white;
-}
+/* Additional styles for planets page - to be used alongside common.css */
 
 /* Form styles */
 .form-control {
@@ -255,14 +219,23 @@ nav ul li a.active {
     background-color: #e6f0ff;
 }
 
-/* Clear button styling */
-.btn-clear {
+/* Clear button styling for planets */
+.planets + .btn-clear {
     margin-top: 30px;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for planets */
 @media (max-width: 768px) {
     .planets {
         grid-template-columns: 1fr;
+    }
+
+    .temp-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .atmosphere-checkboxes {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     }
 }
