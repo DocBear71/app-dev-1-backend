@@ -3,16 +3,10 @@
 const mongoose = require('mongoose');
 
 // Create a separate connection for todos
-const todoConnection = mongoose.createConnection(process.env.MONGODB_URI_TODOS, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+const todoConnection = mongoose.createConnection(process.env.MONGODB_URI_TODOS);
 
 // Create a separate connection for planets
-const planetConnection = mongoose.createConnection(process.env.MONGODB_URI_GUIDES, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+const planetConnection = mongoose.createConnection(process.env.MONGODB_URI_GUIDES);
 
 // Event listeners for the first connection (Todos)
 todoConnection.on('connected', () => {
