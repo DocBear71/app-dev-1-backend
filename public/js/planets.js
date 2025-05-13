@@ -266,14 +266,25 @@ async function addPlanet(planet) {
             body: JSON.stringify(planet)
         });
 
-        // Enhanced error handling
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Server error details:', errorText);
-            throw new Error(`Server responded with status: ${response.status} - ${errorText}`);
+        // Parse response as text first
+        const responseText = await response.text();
+        let data;
+
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Server response is not valid JSON: ${responseText}`);
         }
 
-        const data = await response.json();
+        if (!response.ok) {
+            if (data.errors && Array.isArray(data.errors)) {
+                throw new Error(`Validation failed: ${data.errors.join(', ')}`);
+            } else if (response.status === 409 || (data.message && data.message.includes('duplicate'))) {
+                throw new Error(`A planet with this order number already exists`);
+            } else {
+                throw new Error(data.message || `Server responded with status: ${response.status}`);
+            }
+        }
 
         if (!data.success) {
             throw new Error(data.message || 'Failed to add planet');
@@ -307,13 +318,24 @@ async function updatePlanet(id, planet) {
             },
             body: JSON.stringify(planet)
         });
+        const responseText = await response.text();
+        let data;
 
-        if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Server response is not valid JSON: ${responseText}`);
         }
 
-        const data = await response.json();
-
+        if (!response.ok) {
+            if (data.errors && Array.isArray(data.errors)) {
+                throw new Error(`Validation failed: ${data.errors.join(', ')}`);
+            } else if (response.status === 409 || (data.message && data.message.includes('duplicate'))) {
+                throw new Error(`A planet with this order number already exists`);
+            } else {
+                throw new Error(data.message || `Server responded with status: ${response.status}`);
+            }
+        }
         if (!data.success) {
             throw new Error(data.message || 'Failed to update planet');
         }
@@ -425,6 +447,59 @@ function resetForm() {
     const editItems = document.querySelectorAll('li.edit-mode');
     editItems.forEach(item => item.classList.remove('edit-mode'));
 }
+
+async function validatePlanetData(planet, currentId = null) {
+    const errors = [];
+
+    // Name validation - required and not empty
+    if (!planet.name || planet.name.trim() === '') {
+        errors.push('Planet name is required');
+    }
+
+    // Order from Sun validation - must be a positive integer
+    const orderValue = Number(planet.orderFromSun);
+    if (isNaN(orderValue) || orderValue <= 0) {
+        errors.push('Order from Sun must be a positive number');
+    } else {
+        // Check for duplicate order from sun
+        try {
+            // Fetch all planets to check for duplicates
+            const response = await fetch(apiURL);
+            const data = await response.json();
+
+            if (data.success && Array.isArray(data.data)) {
+                // Check if any other planet has the same orderFromSun value
+                const duplicatePlanet = data.data.find(p =>
+                    p.orderFromSun === orderValue && p._id !== currentId
+                );
+
+                if (duplicatePlanet) {
+                    errors.push(`A planet with order ${orderValue} already exists (${duplicatePlanet.name})`);
+                }
+            }
+        } catch (error) {
+            console.error("Error checking for duplicate orderFromSun:", error);
+            // Continue with submission - the server will catch duplicates if they exist
+        }
+    }
+
+    // Temperature validation - if provided, min cannot be greater than max
+    if (planet.surfaceTemperatureC) {
+        const { min, max } = planet.surfaceTemperatureC;
+
+        if (min !== null && max !== null) {
+            const minVal = Number(min);
+            const maxVal = Number(max);
+
+            if (!isNaN(minVal) && !isNaN(maxVal) && minVal > maxVal) {
+                errors.push('Minimum temperature cannot be greater than maximum temperature');
+            }
+        }
+    }
+
+    return errors;
+}
+
 
 function fillFormForEdit(planet) {
     // Set basic inputs
@@ -544,30 +619,48 @@ window.addEventListener('DOMContentLoaded', fetchPlanets);
 planetForm.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Get planet data from form
-    const planet = getPlanetFromForm();
+    // Show loading indicator
+    const originalButtonText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Validating...';
+    submitBtn.disabled = true;
 
-    // Check if name is provided
-    if (!planet.name) {
-        alert('Planet name is required');
-        return;
-    }
+    try {
+        // Get planet data from form
+        const planet = getPlanetFromForm();
 
-    if (isEditMode()) {
-        // Update existing planet
-        const id = getCurrentEditId();
-        if (id) {
-            const success = await updatePlanet(id, planet);
+        // Get current ID if in edit mode
+        const currentId = isEditMode() ? getCurrentEditId() : null;
+
+        // Validate planet data
+        const validationErrors = await validatePlanetData(planet, currentId);
+
+        if (validationErrors.length > 0) {
+            alert('Please fix the following errors:\n' + validationErrors.join('\n'));
+            return;
+        }
+
+        if (isEditMode()) {
+            // Update existing planet
+            if (currentId) {
+                const success = await updatePlanet(currentId, planet);
+                if (success) {
+                    resetForm();
+                }
+            }
+        } else {
+            // Add new planet
+            const success = await addPlanet(planet);
             if (success) {
                 resetForm();
             }
         }
-    } else {
-        // Add new planet
-        const success = await addPlanet(planet);
-        if (success) {
-            resetForm();
-        }
+    } catch (error) {
+        console.error("Error during form submission:", error);
+        alert("An error occurred while processing your request. Please try again.");
+    } finally {
+        // Restore button state
+        submitBtn.innerHTML = originalButtonText;
+        submitBtn.disabled = false;
     }
 });
 

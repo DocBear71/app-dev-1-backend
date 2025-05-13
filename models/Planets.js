@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { planetConnection } = require('../config/db');
 
 // Create a separate schema for the temperature data without _id
+// Create a separate schema for the temperature data without _id
 const temperatureSchema = new mongoose.Schema({
     min: {
         type: Number,
@@ -22,12 +23,25 @@ const temperatureSchema = new mongoose.Schema({
 const planetSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
-        trim: true
+        required: [true, 'Planet name is required'],
+        trim: true,
+        validate: {
+            validator: function(v) {
+                return v && v.trim().length > 0;
+            },
+            message: 'Planet name cannot be empty'
+        }
     },
     orderFromSun: {
         type: Number,
-        default: 0
+        validate: {
+            validator: function(v) {
+                return v > 0;
+            },
+            message: 'Order from Sun must be a positive number'
+        },
+        default: 1,
+        unique: true // Add unique constraint here
     },
     hasRings: {
         type: Boolean,
@@ -73,16 +87,30 @@ planetSchema.pre('validate', function(next) {
     // Validate that the temperature object is correctly formatted
     if (this.surfaceTemperatureC && typeof this.surfaceTemperatureC === 'object') {
         const { min, max, mean } = this.surfaceTemperatureC;
-        if (typeof min !== 'number' || typeof max !== 'number' || typeof mean !== 'number') {
-            return next(new Error('Surface temperature values must be valid numbers.'));
-        }
-        if (min > max) {
+
+        // Convert to numbers if they're strings
+        const minVal = min !== null && min !== undefined ? Number(min) : null;
+        const maxVal = max !== null && max !== undefined ? Number(max) : null;
+
+        // Only validate the min/max relationship if both values are present
+        if (minVal !== null && maxVal !== null && minVal > maxVal) {
             return next(new Error('Surface temperature min value cannot be greater than max.'));
         }
+
+        // Update the values with their numeric versions
+        if (min !== null && min !== undefined) this.surfaceTemperatureC.min = minVal;
+        if (max !== null && max !== undefined) this.surfaceTemperatureC.max = maxVal;
+        if (mean !== null && mean !== undefined) this.surfaceTemperatureC.mean = Number(mean);
     }
 
     next();
 });
+
+planetSchema.index({ orderFromSun: 1 }, {
+    unique: true,
+    partialFilterExpression: { orderFromSun: { $gt: 0 } }
+});
+
 
 // Use the planetConnection instead of the default mongoose connection
 const Planets = planetConnection.model('planets', planetSchema);

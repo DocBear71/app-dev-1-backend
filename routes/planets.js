@@ -1,17 +1,43 @@
+// /routes/planets.js
+
 // Application dependencies
 const express = require('express');
 const router = express.Router();
 const Planets = require('../models/Planets');
 
-// route definitions
+// Validation middleware
+const validatePlanet = async (req, res, next) => {
+    try {
+        const validation = await validatePlanetInput(req.body);
+
+        if (!validation.success) {
+            return res.status(400).json({
+                success: false,
+                message: validation.error,
+                errors: validation.errors || [validation.error]
+            });
+        }
+
+        next();
+    } catch (error) {
+        console.error("Error in validation middleware:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Validation error",
+            errors: ["An error occurred during validation"]
+        });
+    }
+};
+
+// route definitions with validation middleware
 // Get all Planets
 router.get('/', getPlanets);
 // Get a single planet
 router.get('/:id', getSinglePlanet);
 // Add a new planet
-router.post('/', addPlanet);
+router.post('/', (req, res, next) => validatePlanet(req, res, next), addPlanet);
 // Update a single planet
-router.put('/:id', updateSinglePlanet);
+router.put('/:id', (req, res, next) => validatePlanet(req, res, next), updateSinglePlanet);
 // Delete a single planet
 router.delete('/:id', deleteSinglePlanet);
 // Delete all planets (new endpoint)
@@ -58,25 +84,7 @@ async function addPlanet(req, res) {
         // Add logging to help debug
         console.log("Received planet data:", JSON.stringify(req.body, null, 2));
 
-
-        // Ensure we have valid input
-        if (!req.body) {
-            return res.status(400).json({ success: false, message: 'No data provided' });
-        }
-
-        // Perform validation
-        const [validationResult] = await Promise.all([validatePlanetInput(req.body)]);
-
-        // Extra safety check
-        if (!validationResult) {
-            return res.status(500).json({ success: false, message: 'Validation function returned undefined' });
-        }
-
-        if (!validationResult.success) {
-            return res.status(400).json({ success: false, message: validationResult.error });
-        }
-
-        // Rest of your function...
+        // At this point, validation has already been done by the middleware
         let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
 
         // Process atmosphere data
@@ -84,35 +92,20 @@ async function addPlanet(req, res) {
             mainAtmosphere = hasAtmosphere(mainAtmosphere);
         }
 
-        // Process temperature data
+        // Process temperature data - enforcing our validation rules
         let temperatureData = {
-            min: 0,
-            max: 0,
-            mean: 0
+            min: surfaceTemperatureC?.min !== undefined ? Number(surfaceTemperatureC.min) : null,
+            max: surfaceTemperatureC?.max !== undefined ? Number(surfaceTemperatureC.max) : null,
+            mean: surfaceTemperatureC?.mean !== undefined ? Number(surfaceTemperatureC.mean) : null
         };
 
-        if (surfaceTemperatureC) {
-            if (typeof surfaceTemperatureC === 'object' && !Array.isArray(surfaceTemperatureC)) {
-                temperatureData = {
-                    min: surfaceTemperatureC.min !== undefined ? Number(surfaceTemperatureC.min) : 0,
-                    max: surfaceTemperatureC.max !== undefined ? Number(surfaceTemperatureC.max) : 0,
-                    mean: surfaceTemperatureC.mean !== undefined ? Number(surfaceTemperatureC.mean) : 0
-                };
-            }
-            // Handle string case if needed
-        }
-
-        // Create planet object with defaults for missing values
+        // Create planet object with proper defaults
         const planet = new Planets({
-            name: name || "Unknown Planet",
-            orderFromSun: Number(orderFromSun) || 0,
+            name: name.trim(),
+            orderFromSun: Number(orderFromSun) || 1, // Default to 1 if not provided or invalid
             hasRings: Boolean(hasRings),
             mainAtmosphere: Array.isArray(mainAtmosphere) ? mainAtmosphere : [],
-            surfaceTemperatureC: {
-                min: surfaceTemperatureC?.min || 0,
-                max: surfaceTemperatureC?.max || 0,
-                mean: surfaceTemperatureC?.mean || 0
-            }
+            surfaceTemperatureC: temperatureData
         });
 
         console.log("Attempting to save planet with data:", JSON.stringify(planet, null, 2));
@@ -121,10 +114,21 @@ async function addPlanet(req, res) {
         res.json({ success: true, data: savedPlanet });
     } catch (error) {
         console.log("Error in addPlanet:", error.stack);
+        // Handle MongoDB duplicate key errors more gracefully
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            if (error.code === 11000) {
+                // This is a duplicate key error
+                return res.status(409).json({
+                    success: false,
+                    message: 'A planet with this order number already exists',
+                    errors: ['A planet with this order number already exists']
+                });
+            }
+        }
+
         res.status(500).json({ success: false, message: `Something went wrong: ${error.message}` });
     }
 }
-
 
 async function updateSinglePlanet(req, res) {
     try {
@@ -133,14 +137,15 @@ async function updateSinglePlanet(req, res) {
             return res.status(400).json({success: false, message: 'Invalid ID format'});
         }
 
+        // At this point, validation has already been done by the middleware
         let { name, orderFromSun, hasRings, mainAtmosphere, surfaceTemperatureC } = req.body;
 
         const updates = {};
 
         // Only update fields that are provided
-        if (name) updates.name = name;
-        if (orderFromSun !== undefined) updates.orderFromSun = orderFromSun;
-        if (hasRings !== undefined) updates.hasRings = hasRings;
+        if (name !== undefined) updates.name = name.trim();
+        if (orderFromSun !== undefined) updates.orderFromSun = Number(orderFromSun);
+        if (hasRings !== undefined) updates.hasRings = Boolean(hasRings);
 
         // Handle mainAtmosphere if provided
         if (mainAtmosphere) {
@@ -151,73 +156,12 @@ async function updateSinglePlanet(req, res) {
 
         // Handle surfaceTemperatureC if provided
         if (surfaceTemperatureC) {
-            let temperatureData = {};
-
-            // If it's already an object
-            if (typeof surfaceTemperatureC === 'object' && !Array.isArray(surfaceTemperatureC)) {
-                temperatureData = {
-                    min: surfaceTemperatureC.min !== undefined ? surfaceTemperatureC.min : 0,
-                    max: surfaceTemperatureC.max !== undefined ? surfaceTemperatureC.max : 0,
-                    mean: surfaceTemperatureC.mean !== undefined ? surfaceTemperatureC.mean : 0
-                };
-            }
-            // If it's a string
-            else if (typeof surfaceTemperatureC === 'string') {
-                // Try to extract values using regex pattern for "min: -90.1, max: 57.3, mean: 15.2"
-                const pattern = /min:\s*([-+]?\d*\.?\d+),\s*max:\s*([-+]?\d*\.?\d+),\s*mean:\s*([-+]?\d*\.?\d+)/i;
-                const match = surfaceTemperatureC.match(pattern);
-
-                if (match) {
-                    temperatureData = {
-                        min: parseFloat(match[1]),
-                        max: parseFloat(match[2]),
-                        mean: parseFloat(match[3])
-                    };
-                    console.log('Successfully parsed temperature string:', temperatureData);
-                } else {
-                    // If the regex didn't match, try another approach
-                    console.log('Could not parse temperature string with regex:', surfaceTemperatureC);
-
-                    // Try alternate formats - maybe it's inside braces
-                    const bracesPattern = /\{.*min:\s*([-+]?\d*\.?\d+),\s*max:\s*([-+]?\d*\.?\d+),\s*mean:\s*([-+]?\d*\.?\d+).*}/i;
-                    const bracesMatch = surfaceTemperatureC.match(bracesPattern);
-
-                    if (bracesMatch) {
-                        temperatureData = {
-                            min: parseFloat(bracesMatch[1]),
-                            max: parseFloat(bracesMatch[2]),
-                            mean: parseFloat(bracesMatch[3])
-                        };
-                        console.log('Successfully parsed temperature string with braces pattern:', temperatureData);
-                    } else {
-                        console.log('Could not parse temperature string with braces pattern either');
-
-                        // Try one more approach with separate value extraction
-                        try {
-                            // Extract values independently
-                            const minMatch = surfaceTemperatureC.match(/min:\s*([-+]?\d*\.?\d+)/i);
-                            const maxMatch = surfaceTemperatureC.match(/max:\s*([-+]?\d*\.?\d+)/i);
-                            const meanMatch = surfaceTemperatureC.match(/mean:\s*([-+]?\d*\.?\d+)/i);
-
-                            if (minMatch && maxMatch && meanMatch) {
-                                temperatureData = {
-                                    min: parseFloat(minMatch[1]),
-                                    max: parseFloat(maxMatch[1]),
-                                    mean: parseFloat(meanMatch[1])
-                                };
-                                console.log('Parsed temperature using individual property matches:', temperatureData);
-                            }
-                        } catch (e) {
-                            console.log('Failed to parse with individual matches:', e);
-                        }
-                    }
-                }
-            }
-
-            // Only set the temperature update if we successfully parsed values
-            if (Object.keys(temperatureData).length > 0) {
-                updates.surfaceTemperatureC = temperatureData;
-            }
+            // Process temperature data consistently with validation
+            updates.surfaceTemperatureC = {
+                min: surfaceTemperatureC.min !== undefined ? Number(surfaceTemperatureC.min) : null,
+                max: surfaceTemperatureC.max !== undefined ? Number(surfaceTemperatureC.max) : null,
+                mean: surfaceTemperatureC.mean !== undefined ? Number(surfaceTemperatureC.mean) : null
+            };
         }
 
         console.log("Updating planet with data:", JSON.stringify(updates, null, 2));
@@ -236,7 +180,19 @@ async function updateSinglePlanet(req, res) {
         res.json({success: true, data: updatedPlanet});
     } catch (error) {
         console.log("Error in updateSinglePlanet:", error);
-        res.status(500).json({success: false, message: `Something went wrong: ${error.message}`});
+        // Handle MongoDB duplicate key errors more gracefully
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            if (error.code === 11000) {
+                // This is a duplicate key error
+                return res.status(409).json({
+                    success: false,
+                    message: 'A planet with this order number already exists',
+                    errors: ['A planet with this order number already exists']
+                });
+            }
+        }
+
+        res.status(500).json({ success: false, message: `Something went wrong: ${error.message}` });
     }
 }
 
@@ -291,41 +247,104 @@ async function deleteAllPlanets(req, res) {
     }
 }
 
-function validatePlanetInput(input) {
+async function validatePlanetInput(input) {
+    // Initialize errors array to collect all validation issues
+    const errors = [];
+
     // Check if input is undefined or null
     if (!input) {
-        return { success: false, error: 'No input provided' };
+        return { success: false, error: 'No input provided', errors: ['No input provided'] };
     }
 
-    let { name, orderFromSun, hasRings } = input;
+    let { name, orderFromSun, surfaceTemperatureC } = input;
 
-    // Sanitize the name
-    name = typeof name === 'string' ? name.trim() : name;
-
-    if (!name) {
-        return { success: false, error: 'Invalid planet name' };
+    // Validate name - required and not empty
+    if (!name || (typeof name === 'string' && name.trim() === '')) {
+        errors.push('Planet name is required');
     }
 
-    // Handle orderFromSun (make it more flexible)
-    if (orderFromSun !== undefined && typeof orderFromSun !== 'number' && orderFromSun <= 0) {
-        // Try to convert string to number if possible
-        const parsedOrder = parseInt(orderFromSun);
-        if (isNaN(parsedOrder)) {
-            return { success: false, error: 'Invalid orderFromSun value' };
+    // Validate orderFromSun - must be a positive number
+    let orderValue = orderFromSun;
+    if (typeof orderFromSun === 'string') {
+        orderValue = parseInt(orderFromSun);
+    }
+
+    // If orderFromSun is provided but invalid
+    if (orderFromSun !== undefined && (isNaN(orderValue) || orderValue <= 0)) {
+        errors.push('Order from Sun must be a positive number');
+    }
+
+    if (orderValue > 0) {
+        try {
+            // In case of update, we need the ID to exclude the current planet
+            const id = input._id || input.id;
+
+            // Build the query to check for duplicates
+            const query = { orderFromSun: orderValue };
+
+            // If we have an ID (for updates), exclude the current planet
+            if (id) {
+                query._id = { $ne: id };
+            }
+
+            const existingPlanet = await Planets.findOne(query);
+
+            if (existingPlanet) {
+                errors.push(`A planet with order ${orderValue} already exists (${existingPlanet.name})`);
+            }
+        } catch (error) {
+            console.error("Error checking for duplicate orderFromSun:", error);
+            // Don't add to errors - we'll allow it to proceed and let the database
+            // unique constraint handle it if there's an issue checking
         }
-        // If we get here, it's now a valid number
     }
 
-    // Handle hasRings (make it more flexible)
-    if (hasRings !== undefined && typeof hasRings !== 'boolean') {
-        // Try to handle string values like "true" or "false"
-        if (hasRings === "true") {
-            input.hasRings = true;
-        } else if (hasRings === "false") {
-            input.hasRings = false;
-        } else {
-            return { success: false, error: 'Invalid hasRings value' };
+    // Validate temperature values if provided
+    if (surfaceTemperatureC) {
+        // Convert string representation if needed
+        if (typeof surfaceTemperatureC === 'string') {
+            try {
+                // Try to parse as JSON
+                surfaceTemperatureC = JSON.parse(surfaceTemperatureC);
+            } catch (e) {
+                // If not valid JSON, try to parse using regex
+                const pattern = /min:\s*([-+]?\d*\.?\d+),\s*max:\s*([-+]?\d*\.?\d+),\s*mean:\s*([-+]?\d*\.?\d+)/i;
+                const match = surfaceTemperatureC.match(pattern);
+
+                if (match) {
+                    surfaceTemperatureC = {
+                        min: parseFloat(match[1]),
+                        max: parseFloat(match[2]),
+                        mean: parseFloat(match[3])
+                    };
+                } else {
+                    // If still can't parse, add error
+                    errors.push('Invalid temperature format');
+                }
+            }
         }
+
+        // Check min/max relationship if we have an object with numeric values
+        if (typeof surfaceTemperatureC === 'object' &&
+            surfaceTemperatureC.min !== undefined &&
+            surfaceTemperatureC.max !== undefined) {
+
+            const min = Number(surfaceTemperatureC.min);
+            const max = Number(surfaceTemperatureC.max);
+
+            if (!isNaN(min) && !isNaN(max) && min > max) {
+                errors.push('Minimum temperature cannot be greater than maximum temperature');
+            }
+        }
+    }
+
+    // Return validation result
+    if (errors.length > 0) {
+        return {
+            success: false,
+            error: errors[0], // First error for backward compatibility
+            errors: errors    // All errors for better feedback
+        };
     }
 
     return { success: true };
