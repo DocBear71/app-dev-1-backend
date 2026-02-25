@@ -4,7 +4,7 @@ const router = express.Router();
 const superagent = require('superagent');
 const MyLocation = require('../models/MyLocation.js');
 const MyWeather = require('../models/MyWeather.js');
-const MyRestaurant = require("../models/MyRestaurant");
+// const MyRestaurant = require("../models/MyRestaurant");
 
 // route definitions
 router.post('/', getLocation);
@@ -46,16 +46,16 @@ async function getLocation(req, res) {
         const weatherData = new MyWeather(weatherResponse.body);
 
         // Sstep 3: Fetch restaurant data from Yelp API
-        const restaurantResponse = await superagent.get('https://api.yelp.com/v3/businesses/search')
-        .query({
-            latitude: locationData.lat,
-            longitude: locationData.lon,
-            term: 'restaurants',
-            limit: 8,
-        })
-        .set('Authorization', `Bearer ${process.env.YELP_KEY}`)
-
-        const restaurantArray = restaurantResponse.body.businesses.map(restaurant => new MyRestaurant(restaurant));
+        // const restaurantResponse = await superagent.get('https://api.yelp.com/v3/businesses/search')
+        // .query({
+        //     latitude: locationData.lat,
+        //     longitude: locationData.lon,
+        //     term: 'restaurants',
+        //     limit: 8,
+        // })
+        // .set('Authorization', `Bearer ${process.env.YELP_KEY}`)
+        //
+        // const restaurantArray = restaurantResponse.body.businesses.map(restaurant => new MyRestaurant(restaurant));
 
 
         res.status(200).json({
