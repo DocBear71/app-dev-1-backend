@@ -135,10 +135,10 @@
             </div>
         </div>
 
-        <div id="restaurantsSection" class="mt-8">
-            <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>
-            <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-        </div>
+<!--        <div id="restaurantsSection" class="mt-8">-->
+<!--            <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>-->
+<!--            <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>-->
+<!--        </div>-->
     </div>
 </div>
 
@@ -215,10 +215,10 @@
                             </div>
                         </div>
                     </div>
-                    <div id="restaurantsSection" class="mt-8">
-                        <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>
-                        <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-                    </div>
+<!--                    <div id="restaurantsSection" class="mt-8">-->
+<!--                        <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>-->
+<!--                        <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>-->
+<!--                    </div>-->
                 `;
 
                 // Get fresh references to the elements
@@ -229,7 +229,7 @@
                 const feelsLikeEl = document.getElementById('feelsLike');
                 const humidityEl = document.getElementById('humidity');
                 const windSpeedEl = document.getElementById('windSpeed');
-                const restaurantsDivEl = document.getElementById('restaurantsDiv');
+                // const restaurantsDivEl = document.getElementById('restaurantsDiv');
 
                 const {lat, lon, display_name} = data.location;
 
@@ -273,32 +273,32 @@
                 windSpeedEl.textContent = wind_speed;
 
                 // Display Nearby Restaurants
-                restaurantsDivEl.innerHTML = '';
-                const restaurants = data.restaurants;
-
-                if (restaurants && restaurants.length > 0) {
-                    restaurants.forEach((restaurant) => {
-                        const card = `
-                        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition transform hover:-translate-y-1">
-                            <img src="${restaurant.image_url || '/placeholder-restaurant.jpg'}"
-                                alt="${restaurant.name}"
-                                class="w-full h-36 object-cover"
-                                onerror="this.src='https://placehold.co/600x400?text=No+Image';this.onerror='';">
-                            <div class="p-4">
-                                <h4 class="font-semibold mb-2">${restaurant.name}</h4>
-                                <p class="text-sm text-gray-600 mb-1">${restaurant.price || 'Price not available'}</p>
-                                <p class="text-sm text-gray-600 mb-1">${restaurant.address || ''}</p>
-                                <p class="text-sm text-gray-600 mb-1">${restaurant.city || ''}, ${restaurant.state || ''} ${restaurant.zip || ''}</p>
-                                <p class="text-sm text-gray-600 mb-1">${restaurant.phone || 'Phone not available'}</p>
-                                ${restaurant.url ? `<a href="${restaurant.url}" target="_blank" class="inline-block mt-2 text-gray-800 font-medium hover:underline">Visit Website</a>` : ''}
-                            </div>
-                        </div>
-                        `;
-                        restaurantsDivEl.insertAdjacentHTML('beforeend', card);
-                    });
-                } else {
-                    restaurantsDivEl.innerHTML = '<p class="text-center text-gray-500 p-5">No restaurants found in this area.</p>';
-                }
+                // restaurantsDivEl.innerHTML = '';
+                // const restaurants = data.restaurants;
+                //
+                // if (restaurants && restaurants.length > 0) {
+                //     restaurants.forEach((restaurant) => {
+                //         const card = `
+                //         <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition transform hover:-translate-y-1">
+                //             <img src="${restaurant.image_url || '/placeholder-restaurant.jpg'}"
+                //                 alt="${restaurant.name}"
+                //                 class="w-full h-36 object-cover"
+                //                 onerror="this.src='https://placehold.co/600x400?text=No+Image';this.onerror='';">
+                //             <div class="p-4">
+                //                 <h4 class="font-semibold mb-2">${restaurant.name}</h4>
+                //                 <p class="text-sm text-gray-600 mb-1">${restaurant.price || 'Price not available'}</p>
+                //                 <p class="text-sm text-gray-600 mb-1">${restaurant.address || ''}</p>
+                //                 <p class="text-sm text-gray-600 mb-1">${restaurant.city || ''}, ${restaurant.state || ''} ${restaurant.zip || ''}</p>
+                //                 <p class="text-sm text-gray-600 mb-1">${restaurant.phone || 'Phone not available'}</p>
+                //                 ${restaurant.url ? `<a href="${restaurant.url}" target="_blank" class="inline-block mt-2 text-gray-800 font-medium hover:underline">Visit Website</a>` : ''}
+                //             </div>
+                //         </div>
+                //         `;
+                //         restaurantsDivEl.insertAdjacentHTML('beforeend', card);
+                //     });
+                // } else {
+                //     restaurantsDivEl.innerHTML = '<p class="text-center text-gray-500 p-5">No restaurants found in this area.</p>';
+                // }
 
             } catch (error) {
                 console.error('Error:', error);
