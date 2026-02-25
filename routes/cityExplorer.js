@@ -61,7 +61,7 @@ async function getLocation(req, res) {
         res.status(200).json({
             location: locationData,
             weather: weatherData,
-            restaurants: restaurantArray
+            // restaurants: restaurantArray
         });
 
     } catch(error) {
