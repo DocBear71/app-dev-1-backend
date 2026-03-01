@@ -55,6 +55,8 @@ async function getLocation(req, res) {
             restaurantArray = restaurantResponse.body.businesses.map(restaurant => new MyRestaurant(restaurant));
         } catch(yelpError) {
             console.log('Yelp API error (continuing without restaurants):', yelpError.message);
+            console.log('Yelp API error:', yelpError.status, yelpError.message);
+            console.log('Yelp response body:', yelpError.response?.body);
         }
 
         res.status(200).json({
