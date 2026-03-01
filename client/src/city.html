@@ -135,10 +135,10 @@
             </div>
         </div>
 
-<!--        <div id="restaurantsSection" class="mt-8">-->
-<!--            <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>-->
-<!--            <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>-->
-<!--        </div>-->
+        <div id="restaurantsSection" class="mt-8">
+            <h3 class="text-lg font-medium mb-4">Nearby Restaurants</h3>
+            <div id="restaurantsDiv" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+        </div>
     </div>
 </div>
 
@@ -147,7 +147,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         let apiUrl = '';
         if(location.protocol === 'https:') {
-            apiUrl = 'https://nodejs25.vercel.app/api/cityExplorer/';
+            apiUrl = `${location.origin}/api/cityExplorer/`;
         } else {
             apiUrl = 'http://localhost:5000/api/cityExplorer/'
         }

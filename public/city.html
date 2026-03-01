@@ -147,7 +147,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         let apiUrl = '';
         if(location.protocol === 'https:') {
-            apiUrl = 'https://nodejs25.vercel.app/api/cityExplorer/';
+            apiUrl = `${location.origin}/api/cityExplorer/`;
         } else {
             apiUrl = 'http://localhost:5000/api/cityExplorer/'
         }
